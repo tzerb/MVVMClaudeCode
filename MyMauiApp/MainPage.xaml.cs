@@ -4,9 +4,9 @@ namespace MyMauiApp;
 
 public partial class MainPage : ContentPage
 {
-    public MainPage()
+    public MainPage(MainViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = Application.Current?.Handler?.MauiContext?.Services.GetRequiredService<MainViewModel>();
+        BindingContext = viewModel;
     }
 }

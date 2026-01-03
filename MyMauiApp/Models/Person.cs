@@ -1,8 +1,14 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace MyMauiApp.Models;
 
-public class Person
+public partial class Person : ObservableObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    private string _email = string.Empty;
 }

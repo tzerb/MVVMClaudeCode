@@ -1,12 +1,11 @@
 using System.Collections.ObjectModel;
 using MyMauiApp.Models;
+using MyMauiApp.Helpers;
 
 namespace MyMauiApp.Services;
 
 public class PersonService
 {
-    private readonly List<Person> _people = [];
-
     public ObservableCollection<Person> People { get; } = [];
 
     public PersonService()
@@ -18,7 +17,7 @@ public class PersonService
 
     public Person? GetPersonById(Guid id)
     {
-        return _people.FirstOrDefault(p => p.Id == id);
+        return People.FirstOrDefault(p => p.Id == id);
     }
 
     public (bool Success, string? Error) AddPerson(Person person)
@@ -29,14 +28,13 @@ public class PersonService
             return (false, validationError);
         }
 
-        _people.Add(person);
         People.Add(person);
         return (true, null);
     }
 
     public (bool Success, string? Error) UpdatePerson(Person person)
     {
-        var existing = _people.FirstOrDefault(p => p.Id == person.Id);
+        var existing = People.FirstOrDefault(p => p.Id == person.Id);
         if (existing == null)
         {
             return (false, "Person not found.");
@@ -51,39 +49,31 @@ public class PersonService
         existing.Name = person.Name;
         existing.Email = person.Email;
 
-        // Update the observable collection
-        var index = People.IndexOf(existing);
-        if (index >= 0)
-        {
-            People[index] = existing;
-        }
-
         return (true, null);
     }
 
     public bool DeletePerson(Guid id)
     {
-        var person = _people.FirstOrDefault(p => p.Id == id);
+        var person = People.FirstOrDefault(p => p.Id == id);
         if (person == null)
         {
             return false;
         }
 
-        _people.Remove(person);
         People.Remove(person);
         return true;
     }
 
     public bool IsNameDuplicate(string name, Guid? excludeId = null)
     {
-        return _people.Any(p =>
+        return People.Any(p =>
             p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) &&
             (!excludeId.HasValue || p.Id != excludeId.Value));
     }
 
     public bool IsEmailDuplicate(string email, Guid? excludeId = null)
     {
-        return _people.Any(p =>
+        return People.Any(p =>
             p.Email.Equals(email, StringComparison.OrdinalIgnoreCase) &&
             (!excludeId.HasValue || p.Id != excludeId.Value));
     }
@@ -100,7 +90,7 @@ public class PersonService
             return "Email is required.";
         }
 
-        if (!IsValidEmail(person.Email))
+        if (!ValidationHelper.IsValidEmail(person.Email))
         {
             return "Email format is invalid.";
         }
@@ -118,18 +108,5 @@ public class PersonService
         }
 
         return null;
-    }
-
-    private static bool IsValidEmail(string email)
-    {
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
-        }
     }
 }

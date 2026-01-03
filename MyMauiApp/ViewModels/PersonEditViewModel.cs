@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MyMauiApp.Models;
 using MyMauiApp.Services;
+using MyMauiApp.Helpers;
 
 namespace MyMauiApp.ViewModels;
 
@@ -108,7 +109,7 @@ public partial class PersonEditViewModel : ObservableObject
             EmailError = "Email is required.";
             HasEmailError = true;
         }
-        else if (!IsValidEmail(Email))
+        else if (!ValidationHelper.IsValidEmail(Email))
         {
             EmailError = "Email format is invalid.";
             HasEmailError = true;
@@ -138,19 +139,6 @@ public partial class PersonEditViewModel : ObservableObject
         ValidateName();
         ValidateEmail();
         return !HasNameError && !HasEmailError;
-    }
-
-    private static bool IsValidEmail(string email)
-    {
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     [RelayCommand]

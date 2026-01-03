@@ -29,6 +29,7 @@ public static class MauiProgram
         builder.Services.AddTransient<PersonEditViewModel>();
 
         // Register Views
+        builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<PersonEditPage>();
 
