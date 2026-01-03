@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MyMauiApp.ViewModels"
+             x:Class="MyMauiApp.Views.PersonEditPage"
+             x:DataType="viewmodels:PersonEditViewModel"
+             Title="{Binding PageTitle}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="15">
+
+            <Label
+                Text="{Binding PageTitle}"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <!-- Name Field -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Name" FontSize="14" />
+                <Entry
+                    Text="{Binding Name}"
+                    Placeholder="Enter name" />
+                <Label
+                    Text="{Binding NameError}"
+                    TextColor="Red"
+                    FontSize="12"
+                    IsVisible="{Binding HasNameError}" />
+            </VerticalStackLayout>
+
+            <!-- Email Field -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Email" FontSize="14" />
+                <Entry
+                    Text="{Binding Email}"
+                    Placeholder="Enter email"
+                    Keyboard="Email" />
+                <Label
+                    Text="{Binding EmailError}"
+                    TextColor="Red"
+                    FontSize="12"
+                    IsVisible="{Binding HasEmailError}" />
+            </VerticalStackLayout>
+
+            <!-- Buttons -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" Margin="0,20,0,0">
+                <Button
+                    Text="Save"
+                    Command="{Binding SaveCommand}"
+                    Grid.Column="0" />
+
+                <Button
+                    Text="Delete"
+                    Command="{Binding DeleteCommand}"
+                    BackgroundColor="Red"
+                    IsVisible="{Binding CanDelete}"
+                    Grid.Column="1" />
+
+                <Button
+                    Text="Cancel"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="Gray"
+                    Grid.Column="2" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

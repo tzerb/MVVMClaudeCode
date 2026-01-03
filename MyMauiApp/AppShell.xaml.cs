@@ -1,9 +1,15 @@
-﻿namespace MyMauiApp;
+using MyMauiApp.Views;
+
+namespace MyMauiApp;
 
 public partial class AppShell : Shell
 {
-	public AppShell()
-	{
-		InitializeComponent();
-	}
+    public AppShell()
+    {
+        InitializeComponent();
+
+        // Register routes for navigation
+        Routing.RegisterRoute("settings", typeof(SettingsPage));
+        Routing.RegisterRoute("personedit", typeof(PersonEditPage));
+    }
 }
