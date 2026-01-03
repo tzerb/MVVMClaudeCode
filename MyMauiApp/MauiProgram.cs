@@ -22,6 +22,9 @@ public static class MauiProgram
 
         // Register Services
         builder.Services.AddSingleton<PersonService>();
+        builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<IThemeService, ThemeService>();
+        builder.Services.AddSingleton<IDialogService, DialogService>();
 
         // Register ViewModels
         builder.Services.AddSingleton<MainViewModel>();

@@ -1,3 +1,4 @@
+using Moq;
 using MyMauiApp.Models;
 using MyMauiApp.Services;
 using MyMauiApp.ViewModels;
@@ -7,12 +8,16 @@ namespace MyMauiApp.Tests.ViewModels;
 public class PersonEditViewModelTests
 {
     private readonly PersonService _personService;
+    private readonly Mock<INavigationService> _navigationServiceMock;
+    private readonly Mock<IDialogService> _dialogServiceMock;
     private readonly PersonEditViewModel _viewModel;
 
     public PersonEditViewModelTests()
     {
         _personService = new PersonService();
-        _viewModel = new PersonEditViewModel(_personService);
+        _navigationServiceMock = new Mock<INavigationService>();
+        _dialogServiceMock = new Mock<IDialogService>();
+        _viewModel = new PersonEditViewModel(_personService, _navigationServiceMock.Object, _dialogServiceMock.Object);
     }
 
     #region Initialization Tests

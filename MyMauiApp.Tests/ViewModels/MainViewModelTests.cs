@@ -1,3 +1,4 @@
+using Moq;
 using MyMauiApp.Models;
 using MyMauiApp.Services;
 using MyMauiApp.ViewModels;
@@ -7,12 +8,14 @@ namespace MyMauiApp.Tests.ViewModels;
 public class MainViewModelTests
 {
     private readonly PersonService _personService;
+    private readonly Mock<INavigationService> _navigationServiceMock;
     private readonly MainViewModel _viewModel;
 
     public MainViewModelTests()
     {
         _personService = new PersonService();
-        _viewModel = new MainViewModel(_personService);
+        _navigationServiceMock = new Mock<INavigationService>();
+        _viewModel = new MainViewModel(_personService, _navigationServiceMock.Object);
     }
 
     [Fact]

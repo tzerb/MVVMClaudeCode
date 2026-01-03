@@ -10,6 +10,8 @@ namespace MyMauiApp.ViewModels;
 public partial class PersonEditViewModel : ObservableObject
 {
     private readonly PersonService _personService;
+    private readonly INavigationService _navigationService;
+    private readonly IDialogService _dialogService;
     private Guid? _originalPersonId;
     private bool _isNewPerson;
 
@@ -40,9 +42,11 @@ public partial class PersonEditViewModel : ObservableObject
     [ObservableProperty]
     private bool _canDelete;
 
-    public PersonEditViewModel(PersonService personService)
+    public PersonEditViewModel(PersonService personService, INavigationService navigationService, IDialogService dialogService)
     {
         _personService = personService;
+        _navigationService = navigationService;
+        _dialogService = dialogService;
     }
 
     partial void OnPersonIdChanged(string value)
@@ -160,7 +164,7 @@ public partial class PersonEditViewModel : ObservableObject
             var (success, error) = _personService.AddPerson(person);
             if (!success)
             {
-                await Shell.Current.DisplayAlert("Error", error, "OK");
+                await _dialogService.DisplayAlertAsync("Error", error, "OK");
                 return;
             }
         }
@@ -176,12 +180,12 @@ public partial class PersonEditViewModel : ObservableObject
             var (success, error) = _personService.UpdatePerson(person);
             if (!success)
             {
-                await Shell.Current.DisplayAlert("Error", error, "OK");
+                await _dialogService.DisplayAlertAsync("Error", error, "OK");
                 return;
             }
         }
 
-        await Shell.Current.GoToAsync("..");
+        await _navigationService.GoBackAsync();
     }
 
     [RelayCommand]
@@ -192,7 +196,7 @@ public partial class PersonEditViewModel : ObservableObject
             return;
         }
 
-        var confirm = await Shell.Current.DisplayAlert(
+        var confirm = await _dialogService.DisplayConfirmAsync(
             "Confirm Delete",
             $"Are you sure you want to delete {Name}?",
             "Delete",
@@ -204,12 +208,12 @@ public partial class PersonEditViewModel : ObservableObject
         }
 
         _personService.DeletePerson(_originalPersonId.Value);
-        await Shell.Current.GoToAsync("..");
+        await _navigationService.GoBackAsync();
     }
 
     [RelayCommand]
     private async Task Cancel()
     {
-        await Shell.Current.GoToAsync("..");
+        await _navigationService.GoBackAsync();
     }
 }

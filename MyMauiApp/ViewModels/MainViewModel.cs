@@ -9,32 +9,34 @@ namespace MyMauiApp.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly PersonService _personService;
+    private readonly INavigationService _navigationService;
 
     [ObservableProperty]
     private string _greeting = "People Manager";
 
     public ObservableCollection<Person> People => _personService.People;
 
-    public MainViewModel(PersonService personService)
+    public MainViewModel(PersonService personService, INavigationService navigationService)
     {
         _personService = personService;
+        _navigationService = navigationService;
     }
 
     [RelayCommand]
     private async Task GoToSettings()
     {
-        await Shell.Current.GoToAsync("settings");
+        await _navigationService.GoToAsync("settings");
     }
 
     [RelayCommand]
     private async Task AddPerson()
     {
-        await Shell.Current.GoToAsync("personedit?personId=new");
+        await _navigationService.GoToAsync("personedit?personId=new");
     }
 
     [RelayCommand]
     private async Task EditPerson(Person person)
     {
-        await Shell.Current.GoToAsync($"personedit?personId={person.Id}");
+        await _navigationService.GoToAsync($"personedit?personId={person.Id}");
     }
 }
