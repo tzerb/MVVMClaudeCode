@@ -7,7 +7,7 @@ public class DialogService : IDialogService
         var page = Application.Current?.Windows.FirstOrDefault()?.Page;
         if (page != null)
         {
-            await page.DisplayAlert(title, message, cancel);
+            await page.DisplayAlertAsync(title, message, cancel);
         }
     }
 
@@ -16,7 +16,7 @@ public class DialogService : IDialogService
         var page = Application.Current?.Windows.FirstOrDefault()?.Page;
         if (page != null)
         {
-            return await page.DisplayAlert(title, message, accept, cancel);
+            return await page.DisplayAlertAsync(title, message, accept, cancel);
         }
         return false;
     }

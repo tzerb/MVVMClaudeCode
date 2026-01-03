@@ -164,7 +164,7 @@ public partial class PersonEditViewModel : ObservableObject
             var (success, error) = _personService.AddPerson(person);
             if (!success)
             {
-                await _dialogService.DisplayAlertAsync("Error", error, "OK");
+                await _dialogService.DisplayAlertAsync("Error", error ?? "An error occurred", "OK");
                 return;
             }
         }
@@ -180,7 +180,7 @@ public partial class PersonEditViewModel : ObservableObject
             var (success, error) = _personService.UpdatePerson(person);
             if (!success)
             {
-                await _dialogService.DisplayAlertAsync("Error", error, "OK");
+                await _dialogService.DisplayAlertAsync("Error", error ?? "An error occurred", "OK");
                 return;
             }
         }

@@ -18,6 +18,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
+		<!--
+		Suppress MVVMTK0045: This warning indicates that [ObservableProperty] fields generate code
+		that is not AOT compatible in WinRT scenarios (UWP XAML and WinUI 3 apps). The fix requires
+		using partial properties instead of fields, but this syntax is not supported on all target
+		frameworks (iOS, Android, macOS). Since this app does not require WinRT AOT compilation,
+		the warning is suppressed. See: https://aka.ms/mvvmtoolkit/errors/mvvmtk0045
+		-->
+		<NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+
 		<!-- Display name -->
 		<ApplicationTitle>MyMauiApp</ApplicationTitle>
 
