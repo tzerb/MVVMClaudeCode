@@ -25,16 +25,19 @@ public static class MauiProgram
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IThemeService, ThemeService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
+        builder.Services.AddSingleton<IBluetoothService, BluetoothService>();
 
         // Register ViewModels
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
         builder.Services.AddTransient<PersonEditViewModel>();
+        builder.Services.AddTransient<ArduinoViewModel>();
 
         // Register Views
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<PersonEditPage>();
+        builder.Services.AddTransient<ArduinoPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MyMauiApp.ViewModels"
+             x:Class="MyMauiApp.Views.ArduinoPage"
+             x:DataType="viewmodels:ArduinoViewModel"
+             Title="Arduino Control">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Status Section -->
+            <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                   Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Connection Status"
+                           FontAttributes="Bold"
+                           FontSize="16" />
+                    <Label Text="{Binding Status}"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Connect Button -->
+            <Button Text="{Binding IsConnected, Converter={StaticResource BoolToConnectTextConverter}}"
+                    Command="{Binding ConnectCommand}"
+                    IsEnabled="{Binding IsConnecting, Converter={StaticResource InvertedBoolConverter}}"
+                    BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToConnectColorConverter}}"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    HeightRequest="50" />
+
+            <!-- Servo Control -->
+            <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                   Padding="15"
+                   IsEnabled="{Binding IsConnected}">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Servo Control"
+                           FontAttributes="Bold"
+                           FontSize="16" />
+                    <Label Text="{Binding ServoPosition, StringFormat='Angle: {0}°'}"
+                           FontSize="14"
+                           HorizontalOptions="Center" />
+                    <Slider Minimum="10"
+                            Maximum="180"
+                            Value="{Binding ServoPosition}"
+                            MinimumTrackColor="{StaticResource Primary}"
+                            MaximumTrackColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+                    <Grid ColumnDefinitions="*,*,*,*,*" HorizontalOptions="Fill">
+                        <Label Text="10" Grid.Column="0" HorizontalOptions="Start" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Label Text="45" Grid.Column="1" HorizontalOptions="Center" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Label Text="90" Grid.Column="2" HorizontalOptions="Center" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Label Text="135" Grid.Column="3" HorizontalOptions="Center" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Label Text="180" Grid.Column="4" HorizontalOptions="End" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                    </Grid>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Button Text="10" Command="{Binding SetServoCommand}" CommandParameter="10" WidthRequest="50" />
+                        <Button Text="45" Command="{Binding SetServoCommand}" CommandParameter="45" WidthRequest="50" />
+                        <Button Text="90" Command="{Binding SetServoCommand}" CommandParameter="90" WidthRequest="50" />
+                        <Button Text="135" Command="{Binding SetServoCommand}" CommandParameter="135" WidthRequest="55" />
+                        <Button Text="180" Command="{Binding SetServoCommand}" CommandParameter="180" WidthRequest="55" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Back Button -->
+            <Button Text="Back"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                    TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

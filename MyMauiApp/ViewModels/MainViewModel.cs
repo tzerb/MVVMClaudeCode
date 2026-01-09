@@ -29,6 +29,12 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task GoToArduino()
+    {
+        await _navigationService.GoToAsync("arduino");
+    }
+
+    [RelayCommand]
     private async Task AddPerson()
     {
         await _navigationService.GoToAsync("personedit?personId=new");

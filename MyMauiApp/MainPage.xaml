@@ -66,11 +66,16 @@
         </CollectionView>
 
         <!-- Footer -->
-        <Button
-            Grid.Row="2"
-            Text="Settings"
-            Command="{Binding GoToSettingsCommand}"
-            HorizontalOptions="Fill" />
+        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Fill">
+            <Button
+                Text="Arduino"
+                Command="{Binding GoToArduinoCommand}"
+                HorizontalOptions="FillAndExpand" />
+            <Button
+                Text="Settings"
+                Command="{Binding GoToSettingsCommand}"
+                HorizontalOptions="FillAndExpand" />
+        </HorizontalStackLayout>
 
     </Grid>
 
