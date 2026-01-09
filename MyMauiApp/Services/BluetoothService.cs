@@ -122,23 +122,46 @@ public class BluetoothService : IBluetoothService
         SetStatus($"Scanning for {ArduinoDeviceName}...");
 
         IDevice? arduinoDevice = null;
+        var deviceFoundTcs = new TaskCompletionSource<IDevice?>();
 
-        _adapter.DeviceDiscovered += (s, e) =>
+        void OnDeviceFound(object? s, DeviceEventArgs e)
         {
             if (e.Device.Name == ArduinoDeviceName)
             {
                 arduinoDevice = e.Device;
+                deviceFoundTcs.TrySetResult(e.Device);
             }
-        };
+        }
+
+        _adapter.DeviceDiscovered += OnDeviceFound;
 
         try
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await _adapter.StartScanningForDevicesAsync(cancellationToken: cts.Token);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+            // Start scanning with service UUID filter for faster discovery
+            var scanTask = _adapter.StartScanningForDevicesAsync(
+                serviceUuids: [ServiceUuid],
+                cancellationToken: cts.Token);
+
+            // Wait for either device found or scan timeout
+            var completedTask = await Task.WhenAny(
+                deviceFoundTcs.Task,
+                scanTask);
+
+            // Stop scanning immediately once device is found
+            if (arduinoDevice != null)
+            {
+                await _adapter.StopScanningForDevicesAsync();
+            }
         }
         catch (OperationCanceledException)
         {
             // Scan timeout is expected
+        }
+        finally
+        {
+            _adapter.DeviceDiscovered -= OnDeviceFound;
         }
 
         if (arduinoDevice == null)
@@ -187,19 +210,21 @@ public class BluetoothService : IBluetoothService
     {
         if (_connectedDevice != null)
         {
+            var device = _connectedDevice;
+
             try
             {
-                await _adapter.DisconnectDeviceAsync(_connectedDevice);
+                await _adapter.DisconnectDeviceAsync(device);
+                // OnDeviceDisconnected event handler will update state and fire ConnectionChanged
             }
             catch
             {
-                // Ignore disconnect errors
+                // If disconnect fails, manually update state
+                _connectedDevice = null;
+                _servoCharacteristic = null;
+                SetStatus("Disconnected");
+                ConnectionChanged?.Invoke(this, false);
             }
-
-            _connectedDevice = null;
-            _servoCharacteristic = null;
-            SetStatus("Disconnected");
-            ConnectionChanged?.Invoke(this, false);
         }
     }
 
