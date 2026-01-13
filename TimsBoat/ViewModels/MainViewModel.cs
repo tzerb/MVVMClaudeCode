@@ -8,6 +8,7 @@ namespace TimsBoat.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
     private readonly IBatteryStorageService _storageService;
+    private bool _isInitialized;
 
     [ObservableProperty]
     private bool _isScanning;
@@ -32,6 +33,9 @@ public partial class MainViewModel : ObservableObject
 
     public async Task InitializeAsync()
     {
+        if (_isInitialized) return;
+        _isInitialized = true;
+
         var storedBatteries = await _storageService.GetStoredBatteriesAsync();
 
         foreach (var stored in storedBatteries)
@@ -46,7 +50,7 @@ public partial class MainViewModel : ObservableObject
             SelectedBattery = Batteries[0];
         }
 
-        // Auto-connect to all batteries
+        // Auto-connect to all batteries in parallel
         foreach (var battery in Batteries)
         {
             _ = battery.AutoConnectAsync();

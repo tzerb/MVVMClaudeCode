@@ -32,9 +32,21 @@
                                 <Label Text="{Binding TabTitle}"
                                        FontAttributes="Bold"
                                        FontSize="14" />
-                                <Label Text="{Binding StateOfCharge, StringFormat='{0}%'}"
+                                <Label FontSize="12"
+                                       TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}"
+                                       IsVisible="{Binding IsConnected}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding StateOfCharge, StringFormat='{0}%'}" />
+                                            <Span Text="  " />
+                                            <Span Text="{Binding Current, StringFormat='{0:F1}A'}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Text="{Binding TabStatusText}"
                                        FontSize="12"
-                                       TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}" />
+                                       TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}"
+                                       IsVisible="{Binding IsConnected, Converter={StaticResource InvertedBoolConverter}}" />
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
@@ -64,8 +76,14 @@
                                    FontAttributes="Bold"
                                    FontSize="18" />
                             <Label Text="{Binding Status}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}"
+                                   IsVisible="{Binding IsConnected, Converter={StaticResource InvertedBoolConverter}}" />
+                            <Label Text="{Binding BatteryStatus}"
                                    FontSize="14"
-                                   TextColor="{AppThemeBinding Light={DynamicResource Gray600}, Dark={DynamicResource Gray300}}" />
+                                   FontFamily="Consolas"
+                                   TextColor="{AppThemeBinding Light={DynamicResource Gray600}, Dark={DynamicResource Gray300}}"
+                                   IsVisible="{Binding IsConnected}" />
                         </VerticalStackLayout>
                     </Frame>
 
@@ -83,61 +101,6 @@
                             </MultiBinding>
                         </Button.Text>
                     </Button>
-
-                    <!-- Battery Overview -->
-                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
-                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
-                           Padding="15"
-                           IsVisible="{Binding IsConnected}">
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="Battery Overview"
-                                   FontAttributes="Bold"
-                                   FontSize="16" />
-
-                            <!-- SOC Bar -->
-                            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="SOC:" Grid.Column="0" VerticalOptions="Center" />
-                                <ProgressBar Grid.Column="1"
-                                             Progress="{Binding StateOfCharge, Converter={StaticResource IntToProgressConverter}}"
-                                             ProgressColor="{StaticResource Primary}"
-                                             Margin="10,0" />
-                                <Label Text="{Binding StateOfCharge, StringFormat='{0}%'}"
-                                       Grid.Column="2"
-                                       FontAttributes="Bold" />
-                            </Grid>
-
-                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}" />
-
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="8">
-                                <Label Text="{Binding TotalVoltage, StringFormat='Voltage: {0:F2}V'}" Grid.Row="0" Grid.Column="0" />
-                                <Label Text="{Binding Current, StringFormat='Current: {0:F2}A'}" Grid.Row="0" Grid.Column="1" />
-
-                                <Label Text="{Binding RemainingCapacity, StringFormat='Remaining: {0:F1}Ah'}" Grid.Row="1" Grid.Column="0" />
-                                <Label Text="{Binding FullCapacity, StringFormat='Full: {0:F1}Ah'}" Grid.Row="1" Grid.Column="1" />
-
-                                <Label Text="{Binding CycleCount, StringFormat='Cycles: {0}'}" Grid.Row="2" Grid.Column="0" />
-                                <Label Text="{Binding CellCount, StringFormat='Cells: {0}'}" Grid.Row="2" Grid.Column="1" />
-
-                                <Label Text="{Binding ChargeFetOn, StringFormat='Charge FET: {0}'}" Grid.Row="3" Grid.Column="0" />
-                                <Label Text="{Binding DischargeFetOn, StringFormat='Discharge FET: {0}'}" Grid.Row="3" Grid.Column="1" />
-                            </Grid>
-                        </VerticalStackLayout>
-                    </Frame>
-
-                    <!-- Temperatures -->
-                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
-                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
-                           Padding="15"
-                           IsVisible="{Binding IsConnected}">
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="Temperatures"
-                                   FontAttributes="Bold"
-                                   FontSize="16" />
-                            <Label Text="{Binding Temperatures}"
-                                   FontSize="14"
-                                   TextColor="{AppThemeBinding Light={DynamicResource Gray600}, Dark={DynamicResource Gray300}}" />
-                        </VerticalStackLayout>
-                    </Frame>
 
                     <!-- Cell Voltages -->
                     <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"

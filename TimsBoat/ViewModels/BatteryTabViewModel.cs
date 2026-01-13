@@ -23,10 +23,14 @@ public partial class BatteryTabViewModel : ObservableObject
     private string _status = "Not connected";
 
     [ObservableProperty]
+    private string _batteryStatus = "";
+
+    [ObservableProperty]
     private bool _isConnected;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsWorking))]
+    [NotifyPropertyChangedFor(nameof(TabStatusText))]
     private bool _isConnecting;
 
     [ObservableProperty]
@@ -34,6 +38,8 @@ public partial class BatteryTabViewModel : ObservableObject
     private bool _isDisconnecting;
 
     public bool IsWorking => IsConnecting || IsDisconnecting;
+
+    public string TabStatusText => IsConnecting ? "Connecting..." : "Not connected";
 
     [ObservableProperty]
     private double _totalVoltage;
@@ -177,6 +183,9 @@ public partial class BatteryTabViewModel : ObservableObject
                 {
                     Temperatures = string.Join(", ", info.Temperatures.Select(t => $"{t:F1}C"));
                 }
+
+                // Update the consolidated battery status
+                UpdateBatteryStatus();
             }
 
             if (info.CellVoltages.Count > 0)
@@ -184,6 +193,23 @@ public partial class BatteryTabViewModel : ObservableObject
                 UpdateCellVoltages(info.CellVoltages);
             }
         });
+    }
+
+    private void UpdateBatteryStatus()
+    {
+        var lines = new List<string>
+        {
+            $"SOC: {StateOfCharge}%  |  {TotalVoltage:F2}V  |  {Current:F2}A",
+            $"Capacity: {RemainingCapacity:F1}/{FullCapacity:F1} Ah  |  Cycles: {CycleCount}",
+            $"Cells: {CellCount}  |  Charge: {(ChargeFetOn ? "ON" : "OFF")}  |  Discharge: {(DischargeFetOn ? "ON" : "OFF")}"
+        };
+
+        if (!string.IsNullOrEmpty(Temperatures))
+        {
+            lines.Add($"Temps: {Temperatures}");
+        }
+
+        BatteryStatus = string.Join("\n", lines);
     }
 
     private void UpdateCellVoltages(List<double> voltages)

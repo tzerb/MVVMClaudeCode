@@ -1,4 +1,3 @@
-using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
 
@@ -15,7 +14,7 @@ public class BatteryService : IBatteryService
     private static readonly byte[] BasicInfoCommand = [0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 0x77];
     private static readonly byte[] CellVoltageCommand = [0xDD, 0xA5, 0x04, 0x00, 0xFF, 0xFC, 0x77];
 
-    private readonly IBluetoothLE _bluetoothLE;
+    private readonly BleConnectionManager _connectionManager;
     private readonly IAdapter _adapter;
     private IDevice? _connectedDevice;
     private ICharacteristic? _writeCharacteristic;
@@ -39,8 +38,8 @@ public class BatteryService : IBatteryService
 
     public BatteryService()
     {
-        _bluetoothLE = CrossBluetoothLE.Current;
-        _adapter = CrossBluetoothLE.Current.Adapter;
+        _connectionManager = BleConnectionManager.Instance;
+        _adapter = _connectionManager.Adapter;
         _adapter.DeviceDisconnected += OnDeviceDisconnected;
         _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
     }
@@ -82,7 +81,7 @@ public class BatteryService : IBatteryService
 
     public async Task StartScanAsync()
     {
-        if (_bluetoothLE.State != BluetoothState.On)
+        if (!_connectionManager.IsBluetoothOn)
         {
             SetStatus("Bluetooth is not enabled");
             return;
@@ -93,20 +92,15 @@ public class BatteryService : IBatteryService
         _isScanning = true;
         SetStatus("Scanning for devices...");
 
-        _adapter.DeviceDiscovered += OnScanDeviceDiscovered;
-
         try
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await _adapter.StartScanningForDevicesAsync(cancellationToken: cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Scan timeout is expected
+            await _connectionManager.StartScanForDevicesAsync(device =>
+            {
+                DeviceDiscovered?.Invoke(this, device);
+            });
         }
         finally
         {
-            _adapter.DeviceDiscovered -= OnScanDeviceDiscovered;
             _isScanning = false;
             SetStatus("Scan complete");
         }
@@ -116,20 +110,10 @@ public class BatteryService : IBatteryService
     {
         if (_isScanning)
         {
-            await _adapter.StopScanningForDevicesAsync();
+            await _connectionManager.StopScanAsync();
             _isScanning = false;
             SetStatus("Scan stopped");
         }
-    }
-
-    private void OnScanDeviceDiscovered(object? sender, DeviceEventArgs e)
-    {
-        var deviceInfo = new BleDeviceInfo
-        {
-            Id = e.Device.Id,
-            Name = e.Device.Name ?? ""
-        };
-        DeviceDiscovered?.Invoke(this, deviceInfo);
     }
 
     public void ClearSelectedDevice()
@@ -145,7 +129,7 @@ public class BatteryService : IBatteryService
 
     public async Task<bool> ConnectAsync()
     {
-        if (_bluetoothLE.State != BluetoothState.On)
+        if (!_connectionManager.IsBluetoothOn)
         {
             SetStatus("Bluetooth is not enabled");
             return false;
@@ -157,46 +141,10 @@ public class BatteryService : IBatteryService
             return false;
         }
 
-        var targetId = _selectedDevice.Id;
-
-        SetStatus($"Scanning for {_selectedDevice.DisplayName}...");
-
-        IDevice? batteryDevice = null;
-        var deviceFoundTcs = new TaskCompletionSource<IDevice?>();
-
-        void OnDeviceFound(object? s, DeviceEventArgs e)
-        {
-            if (e.Device.Id == targetId)
-            {
-                batteryDevice = e.Device;
-                deviceFoundTcs.TrySetResult(e.Device);
-            }
-        }
-
-        _adapter.DeviceDiscovered += OnDeviceFound;
-
-        try
-        {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-            var scanTask = _adapter.StartScanningForDevicesAsync(
-                cancellationToken: cts.Token);
-
-            await Task.WhenAny(deviceFoundTcs.Task, scanTask);
-
-            if (batteryDevice != null)
-            {
-                await _adapter.StopScanningForDevicesAsync();
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Scan timeout
-        }
-        finally
-        {
-            _adapter.DeviceDiscovered -= OnDeviceFound;
-        }
+        var batteryDevice = await _connectionManager.FindAndConnectDeviceAsync(
+            _selectedDevice.Id,
+            _selectedDevice.DisplayName,
+            SetStatus);
 
         if (batteryDevice == null)
         {
