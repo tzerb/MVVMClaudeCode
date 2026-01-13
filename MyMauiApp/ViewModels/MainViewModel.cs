@@ -35,6 +35,12 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task GoToBattery()
+    {
+        await _navigationService.GoToAsync("battery");
+    }
+
+    [RelayCommand]
     private async Task AddPerson()
     {
         await _navigationService.GoToAsync("personedit?personId=new");

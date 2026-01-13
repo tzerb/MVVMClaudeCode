@@ -12,5 +12,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("settings", typeof(SettingsPage));
         Routing.RegisterRoute("personedit", typeof(PersonEditPage));
         Routing.RegisterRoute("arduino", typeof(ArduinoPage));
+        Routing.RegisterRoute("battery", typeof(BatteryPage));
     }
 }

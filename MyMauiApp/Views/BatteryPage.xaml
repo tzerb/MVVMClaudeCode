@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MyMauiApp.ViewModels"
+             xmlns:services="clr-namespace:MyMauiApp.Services"
+             x:Class="MyMauiApp.Views.BatteryPage"
+             x:DataType="viewmodels:BatteryViewModel"
+             Title="Battery Info">
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <!-- Status Section -->
+                <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                       Padding="15">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Connection Status"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="{Binding Status}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                        <Label Text="{Binding SelectedDeviceName, StringFormat='Device: {0}'}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               IsVisible="{Binding SelectedDeviceName, Converter={StaticResource IsNotNullConverter}}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Device Selection -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding IsConnected, Converter={StaticResource InvertedBoolConverter}}">
+                    <Button Text="{Binding IsScanning, Converter={StaticResource BoolToScanTextConverter}}"
+                            Command="{Binding ScanDevicesCommand}"
+                            Grid.Column="0" />
+                    <Button Text="Clear"
+                            Command="{Binding ClearSelectedDeviceCommand}"
+                            Grid.Column="1"
+                            IsVisible="{Binding SelectedDeviceName, Converter={StaticResource IsNotNullConverter}}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                </Grid>
+
+                <!-- Connect Button -->
+                <Button Command="{Binding ConnectCommand}"
+                        IsEnabled="{Binding IsWorking, Converter={StaticResource InvertedBoolConverter}}"
+                        BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToConnectColorConverter}}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        HeightRequest="50">
+                    <Button.Text>
+                        <MultiBinding Converter="{StaticResource ConnectButtonTextConverter}">
+                            <Binding Path="IsWorking" />
+                            <Binding Path="IsConnected" />
+                        </MultiBinding>
+                    </Button.Text>
+                </Button>
+
+                <!-- Battery Overview -->
+                <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                       Padding="15"
+                       IsVisible="{Binding IsConnected}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Battery Overview"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+
+                        <!-- SOC Bar -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                            <Label Text="SOC:" Grid.Column="0" VerticalOptions="Center" />
+                            <ProgressBar Grid.Column="1"
+                                         Progress="{Binding StateOfCharge, Converter={StaticResource IntToProgressConverter}}"
+                                         ProgressColor="{StaticResource Primary}"
+                                         Margin="10,0" />
+                            <Label Text="{Binding StateOfCharge, StringFormat='{0}%'}"
+                                   Grid.Column="2"
+                                   FontAttributes="Bold" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="8">
+                            <Label Text="{Binding TotalVoltage, StringFormat='Voltage: {0:F2}V'}" Grid.Row="0" Grid.Column="0" />
+                            <Label Text="{Binding Current, StringFormat='Current: {0:F2}A'}" Grid.Row="0" Grid.Column="1" />
+
+                            <Label Text="{Binding RemainingCapacity, StringFormat='Remaining: {0:F1}Ah'}" Grid.Row="1" Grid.Column="0" />
+                            <Label Text="{Binding FullCapacity, StringFormat='Full: {0:F1}Ah'}" Grid.Row="1" Grid.Column="1" />
+
+                            <Label Text="{Binding CycleCount, StringFormat='Cycles: {0}'}" Grid.Row="2" Grid.Column="0" />
+                            <Label Text="{Binding CellCount, StringFormat='Cells: {0}'}" Grid.Row="2" Grid.Column="1" />
+
+                            <Label Text="{Binding ChargeFetOn, StringFormat='Charge FET: {0}'}" Grid.Row="3" Grid.Column="0" />
+                            <Label Text="{Binding DischargeFetOn, StringFormat='Discharge FET: {0}'}" Grid.Row="3" Grid.Column="1" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Temperatures -->
+                <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                       Padding="15"
+                       IsVisible="{Binding IsConnected}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Temperatures"
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="{Binding Temperatures}"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Cell Voltages -->
+                <Frame BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                       Padding="15"
+                       IsVisible="{Binding IsConnected}">
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="Cell Voltages"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+                            <Frame BackgroundColor="Green" Padding="5,2" CornerRadius="3" BorderColor="Transparent">
+                                <Label Text="High" FontSize="10" TextColor="White" />
+                            </Frame>
+                            <Frame BackgroundColor="Red" Padding="5,2" CornerRadius="3" BorderColor="Transparent">
+                                <Label Text="Low" FontSize="10" TextColor="White" />
+                            </Frame>
+                        </HorizontalStackLayout>
+                        <FlexLayout BindableLayout.ItemsSource="{Binding CellVoltages}"
+                                    Wrap="Wrap"
+                                    JustifyContent="Start"
+                                    AlignItems="Start">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:CellVoltageInfo">
+                                    <Frame Margin="2"
+                                           Padding="8,4"
+                                           CornerRadius="4"
+                                           BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                           BackgroundColor="{Binding ., Converter={StaticResource CellVoltageColorConverter}}">
+                                        <Label Text="{Binding Display}"
+                                               FontSize="12"
+                                               TextColor="{Binding ., Converter={StaticResource CellVoltageTextColorConverter}}" />
+                                    </Frame>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Back Button -->
+                <Button Text="Back"
+                        Command="{Binding GoBackCommand}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Device List Overlay -->
+        <Grid IsVisible="{Binding ShowDeviceList}"
+              BackgroundColor="{AppThemeBinding Light=#80000000, Dark=#80000000}">
+            <Frame Margin="20"
+                   Padding="15"
+                   VerticalOptions="Center"
+                   MaximumHeightRequest="400"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Select Device"
+                           FontAttributes="Bold"
+                           FontSize="18"
+                           HorizontalOptions="Center" />
+
+                    <ActivityIndicator IsRunning="{Binding IsScanning}"
+                                       IsVisible="{Binding IsScanning}"
+                                       HeightRequest="30" />
+
+                    <CollectionView ItemsSource="{Binding DiscoveredDevices}"
+                                    MaximumHeightRequest="250"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="services:BleDeviceInfo">
+                                <Frame Margin="0,5" Padding="10" CornerRadius="5"
+                                       BorderColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:BatteryViewModel}}, Path=SelectDeviceCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Frame.GestureRecognizers>
+                                    <Label Text="{Binding DisplayName}"
+                                           FontSize="14" />
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No devices found yet..."
+                                   HorizontalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+
+                    <Button Text="Cancel"
+                            Command="{Binding CancelScanCommand}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+    </Grid>
+
+</ContentPage>

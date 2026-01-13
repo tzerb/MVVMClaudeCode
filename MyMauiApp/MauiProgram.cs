@@ -26,18 +26,21 @@ public static class MauiProgram
         builder.Services.AddSingleton<IThemeService, ThemeService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<IBluetoothService, BluetoothService>();
+        builder.Services.AddSingleton<IBatteryService, BatteryService>();
 
         // Register ViewModels
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
         builder.Services.AddTransient<PersonEditViewModel>();
         builder.Services.AddTransient<ArduinoViewModel>();
+        builder.Services.AddTransient<BatteryViewModel>();
 
         // Register Views
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<PersonEditPage>();
         builder.Services.AddTransient<ArduinoPage>();
+        builder.Services.AddTransient<BatteryPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

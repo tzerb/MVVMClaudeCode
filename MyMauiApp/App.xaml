@@ -14,7 +14,13 @@
             <!-- Converters -->
             <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
             <converters:BoolToConnectTextConverter x:Key="BoolToConnectTextConverter" />
+            <converters:ConnectButtonTextConverter x:Key="ConnectButtonTextConverter" />
             <converters:BoolToConnectColorConverter x:Key="BoolToConnectColorConverter" />
+            <converters:IntToProgressConverter x:Key="IntToProgressConverter" />
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:BoolToScanTextConverter x:Key="BoolToScanTextConverter" />
+            <converters:CellVoltageColorConverter x:Key="CellVoltageColorConverter" />
+            <converters:CellVoltageTextColorConverter x:Key="CellVoltageTextColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

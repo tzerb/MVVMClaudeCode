@@ -72,6 +72,10 @@
                 Command="{Binding GoToArduinoCommand}"
                 HorizontalOptions="FillAndExpand" />
             <Button
+                Text="Battery"
+                Command="{Binding GoToBatteryCommand}"
+                HorizontalOptions="FillAndExpand" />
+            <Button
                 Text="Settings"
                 Command="{Binding GoToSettingsCommand}"
                 HorizontalOptions="FillAndExpand" />
