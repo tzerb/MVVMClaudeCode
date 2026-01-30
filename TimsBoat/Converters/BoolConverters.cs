@@ -162,3 +162,18 @@ public class CellVoltageTextColorConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class BoolToOnOffConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isOn)
+            return isOn ? "Turn Off" : "Turn On";
+        return "Turn On";
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

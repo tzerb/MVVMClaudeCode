@@ -17,7 +17,19 @@ public partial class MainViewModel : ObservableObject
     private bool _showDeviceList;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBoatMonitorSelected))]
+    [NotifyPropertyChangedFor(nameof(IsBatterySelected))]
     private BatteryTabViewModel? _selectedBattery;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsBoatMonitorSelected))]
+    [NotifyPropertyChangedFor(nameof(IsBatterySelected))]
+    private bool _boatMonitorTabSelected = true;
+
+    public bool IsBoatMonitorSelected => BoatMonitorTabSelected;
+    public bool IsBatterySelected => !BoatMonitorTabSelected && SelectedBattery != null;
+
+    public BoatMonitorViewModel BoatMonitor { get; } = new();
 
     public ObservableCollection<BatteryTabViewModel> Batteries { get; } = [];
     public ObservableCollection<BleDeviceInfo> DiscoveredDevices { get; } = [];
@@ -50,7 +62,8 @@ public partial class MainViewModel : ObservableObject
             SelectedBattery = Batteries[0];
         }
 
-        // Auto-connect to all batteries in parallel
+        // Auto-connect to BoatMonitor and all batteries in parallel
+        _ = BoatMonitor.AutoConnectAsync();
         foreach (var battery in Batteries)
         {
             _ = battery.AutoConnectAsync();
@@ -145,7 +158,14 @@ public partial class MainViewModel : ObservableObject
     {
         if (battery != null)
         {
+            BoatMonitorTabSelected = false;
             SelectedBattery = battery;
         }
+    }
+
+    [RelayCommand]
+    private void SelectBoatMonitorTab()
+    {
+        BoatMonitorTabSelected = true;
     }
 }

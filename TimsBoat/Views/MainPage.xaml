@@ -5,19 +5,37 @@
              xmlns:services="clr-namespace:TimsBoat.Services"
              x:Class="TimsBoat.Views.MainPage"
              x:DataType="viewmodels:MainViewModel"
-             Title="Tim's Boat - Batteries">
+             Title="Tim's Boat">
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- Battery Tabs -->
+        <!-- Tabs -->
         <ScrollView Grid.Row="0"
                     Orientation="Horizontal"
                     HorizontalScrollBarVisibility="Never"
                     BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}">
             <HorizontalStackLayout Padding="10,5" Spacing="5">
-                <BindableLayout.ItemsSource>
-                    <Binding Path="Batteries" />
-                </BindableLayout.ItemsSource>
-                <BindableLayout.ItemTemplate>
+                <!-- BoatMonitor Tab (First - Always visible) -->
+                <Frame Padding="15,10"
+                       CornerRadius="8"
+                       BorderColor="{Binding IsBoatMonitorSelected, Converter={StaticResource BoolToConnectColorConverter}}"
+                       BackgroundColor="{AppThemeBinding Light=White, Dark={DynamicResource Gray800}}">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SelectBoatMonitorTabCommand}" />
+                    </Frame.GestureRecognizers>
+                    <VerticalStackLayout>
+                        <Label Text="Boat Monitor"
+                               FontAttributes="Bold"
+                               FontSize="14" />
+                        <Label Text="{Binding BoatMonitor.TabStatusText}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Battery Tabs (Dynamic) -->
+                <HorizontalStackLayout Spacing="5"
+                                       BindableLayout.ItemsSource="{Binding Batteries}">
+                    <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewmodels:BatteryTabViewModel">
                         <Frame Padding="15,10"
                                CornerRadius="8"
@@ -50,23 +68,173 @@
                             </VerticalStackLayout>
                         </Frame>
                     </DataTemplate>
-                </BindableLayout.ItemTemplate>
+                    </BindableLayout.ItemTemplate>
+                </HorizontalStackLayout>
             </HorizontalStackLayout>
         </ScrollView>
 
-        <!-- Selected Battery Content -->
-        <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="20" Spacing="15" BindingContext="{Binding SelectedBattery}">
-                <Label Text="No batteries configured. Tap 'Connect New Battery' to add one."
-                       IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=SelectedBattery, Converter={StaticResource IsNullConverter}}"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"
-                       TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}" />
+        <!-- Content Area -->
+        <Grid Grid.Row="1">
+            <!-- BoatMonitor Content -->
+            <ScrollView IsVisible="{Binding IsBoatMonitorSelected}">
+                <VerticalStackLayout Padding="20" Spacing="15" BindingContext="{Binding BoatMonitor}" x:DataType="viewmodels:BoatMonitorViewModel">
+                    <!-- Status Section -->
+                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Boat Monitor"
+                                   FontAttributes="Bold"
+                                   FontSize="18" />
+                            <Label Text="{Binding Status}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={DynamicResource Gray500}, Dark={DynamicResource Gray400}}" />
+                        </VerticalStackLayout>
+                    </Frame>
 
-                <VerticalStackLayout Spacing="15"
-                                     IsVisible="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainViewModel}}, Path=SelectedBattery, Converter={StaticResource IsNotNullConverter}}"
-                                     x:DataType="viewmodels:BatteryTabViewModel">
+                    <!-- Connect Button -->
+                    <Button Command="{Binding ConnectCommand}"
+                            BackgroundColor="{Binding IsConnected, Converter={StaticResource BoolToConnectColorConverter}}"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            HeightRequest="50">
+                        <Button.Text>
+                            <MultiBinding Converter="{StaticResource ConnectButtonTextConverter}">
+                                <Binding Path="IsConnecting" />
+                                <Binding Path="IsConnected" />
+                            </MultiBinding>
+                        </Button.Text>
+                    </Button>
 
+                    <!-- Voltage Readings -->
+                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
+                           Padding="15"
+                           IsVisible="{Binding IsConnected}">
+                        <VerticalStackLayout Spacing="15">
+                            <Label Text="Battery Voltages"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="20" RowSpacing="10">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Battery 1" FontAttributes="Bold" />
+                                <Label Grid.Row="1" Grid.Column="0" Text="{Binding Voltage1, StringFormat='{0:F2} V'}" FontSize="24" />
+                                <Label Grid.Row="0" Grid.Column="1" Text="Battery 2" FontAttributes="Bold" />
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Voltage2, StringFormat='{0:F2} V'}" FontSize="24" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- LED Strip Control -->
+                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
+                           Padding="15"
+                           IsVisible="{Binding IsConnected}">
+                        <VerticalStackLayout Spacing="15">
+                            <Label Text="LED Strip"
+                                   FontAttributes="Bold"
+                                   FontSize="16" />
+
+                            <!-- On/Off Toggle -->
+                            <Button Text="{Binding StripOn, Converter={StaticResource BoolToOnOffConverter}}"
+                                    Command="{Binding ToggleStripCommand}"
+                                    BackgroundColor="{Binding StripOn, Converter={StaticResource BoolToConnectColorConverter}}"
+                                    TextColor="White"
+                                    HeightRequest="50" />
+
+                            <!-- Color Presets -->
+                            <Label Text="Color Presets" FontSize="14" />
+                            <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                                <Button Text="Red" BackgroundColor="Red" TextColor="White"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Red"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Green" BackgroundColor="Green" TextColor="White"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Green"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Blue" BackgroundColor="Blue" TextColor="White"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Blue"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="White" BackgroundColor="White" TextColor="Black"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="White"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Yellow" BackgroundColor="Yellow" TextColor="Black"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Yellow"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Cyan" BackgroundColor="Cyan" TextColor="Black"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Cyan"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Orange" BackgroundColor="Orange" TextColor="White"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Orange"
+                                        Margin="2" WidthRequest="80" />
+                                <Button Text="Off" BackgroundColor="Gray" TextColor="White"
+                                        Command="{Binding SetPresetColorCommand}" CommandParameter="Off"
+                                        Margin="2" WidthRequest="80" />
+                            </FlexLayout>
+
+                            <!-- Warm White Presets -->
+                            <Label Text="Warm White" FontSize="14" />
+                            <HorizontalStackLayout Spacing="4">
+                                <Button Text="25%" BackgroundColor="#FFE4B5" TextColor="Black"
+                                        Command="{Binding SetWarmWhiteCommand}" CommandParameter="25"
+                                        WidthRequest="80" />
+                                <Button Text="50%" BackgroundColor="#FFDAB9" TextColor="Black"
+                                        Command="{Binding SetWarmWhiteCommand}" CommandParameter="50"
+                                        WidthRequest="80" />
+                                <Button Text="75%" BackgroundColor="#FFD39B" TextColor="Black"
+                                        Command="{Binding SetWarmWhiteCommand}" CommandParameter="75"
+                                        WidthRequest="80" />
+                                <Button Text="100%" BackgroundColor="#FFC878" TextColor="Black"
+                                        Command="{Binding SetWarmWhiteCommand}" CommandParameter="100"
+                                        WidthRequest="80" />
+                            </HorizontalStackLayout>
+
+                            <!-- Current Color Preview -->
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="Current Color:" VerticalOptions="Center" />
+                                <Frame WidthRequest="50" HeightRequest="30"
+                                       BackgroundColor="{Binding SelectedColor}"
+                                       BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
+                                       CornerRadius="5" Padding="0" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- BLE Log Section -->
+                    <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
+                           BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="BLE Debug Log"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       VerticalOptions="Center" />
+                                <Button Text="{Binding ShowLog, Converter={StaticResource BoolToOnOffConverter}}"
+                                        Command="{Binding ToggleLogCommand}"
+                                        HeightRequest="35"
+                                        Padding="10,0" />
+                                <Button Text="Clear"
+                                        Command="{Binding ClearLogCommand}"
+                                        HeightRequest="35"
+                                        Padding="10,0"
+                                        IsVisible="{Binding ShowLog}" />
+                            </HorizontalStackLayout>
+                            <Editor Text="{Binding LogText}"
+                                    IsReadOnly="True"
+                                    FontFamily="Consolas"
+                                    FontSize="10"
+                                    TextColor="{AppThemeBinding Light=Black, Dark={DynamicResource Gray300}}"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark=Black}"
+                                    IsVisible="{Binding ShowLog}"
+                                    HeightRequest="300"
+                                    AutoSize="Disabled" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- Selected Battery Content -->
+            <ScrollView IsVisible="{Binding IsBatterySelected}">
+                <VerticalStackLayout Padding="20" Spacing="15" BindingContext="{Binding SelectedBattery}" x:DataType="viewmodels:BatteryTabViewModel">
                     <!-- Status Section -->
                     <Frame BorderColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
                            BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray900}}"
@@ -146,8 +314,8 @@
                             BackgroundColor="{AppThemeBinding Light={DynamicResource Gray300}, Dark={DynamicResource Gray600}}"
                             TextColor="Red" />
                 </VerticalStackLayout>
-            </VerticalStackLayout>
-        </ScrollView>
+            </ScrollView>
+        </Grid>
 
         <!-- Connect New Battery Button -->
         <Button Grid.Row="2"

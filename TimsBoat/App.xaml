@@ -22,6 +22,7 @@
             <converters:BoolToScanTextConverter x:Key="BoolToScanTextConverter" />
             <converters:CellVoltageColorConverter x:Key="CellVoltageColorConverter" />
             <converters:CellVoltageTextColorConverter x:Key="CellVoltageTextColorConverter" />
+            <converters:BoolToOnOffConverter x:Key="BoolToOnOffConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -55,10 +55,13 @@ public class BatteryService : IBatteryService
         StatusChanged?.Invoke(this, status);
     }
 
+    private string LogSource => $"BMS:{_selectedDevice?.DisplayName ?? "unknown"}";
+
     private void OnDeviceDisconnected(object? sender, DeviceEventArgs e)
     {
         if (_connectedDevice != null && e.Device.Id == _connectedDevice.Id)
         {
+            BleLogger.Log(LogSource, $"Device disconnected: {e.Device.Name}");
             _connectedDevice = null;
             _writeCharacteristic = null;
             _notifyCharacteristic = null;
@@ -71,6 +74,7 @@ public class BatteryService : IBatteryService
     {
         if (_connectedDevice != null && e.Device.Id == _connectedDevice.Id)
         {
+            BleLogger.LogError(LogSource, $"Connection lost: {e.Device.Name}", e.ErrorMessage != null ? new Exception(e.ErrorMessage) : null);
             _connectedDevice = null;
             _writeCharacteristic = null;
             _notifyCharacteristic = null;
@@ -273,13 +277,20 @@ public class BatteryService : IBatteryService
     private void OnNotificationReceived(object? sender, CharacteristicUpdatedEventArgs e)
     {
         var data = e.Characteristic.Value;
-        if (data == null || data.Length == 0) return;
+        if (data == null || data.Length == 0)
+        {
+            BleLogger.Log(LogSource, "Notification received: null or empty data");
+            return;
+        }
+
+        BleLogger.LogData(LogSource, $"Notification chunk (buffer was {_responseBuffer.Count} bytes)", data);
 
         _responseBuffer.AddRange(data);
 
         // Check for complete message (ends with 0x77)
         if (_responseBuffer.Count > 0 && _responseBuffer[^1] == 0x77)
         {
+            BleLogger.Log(LogSource, $"Complete message detected, total buffer: {_responseBuffer.Count} bytes");
             ProcessCompleteResponse([.. _responseBuffer]);
             _responseBuffer.Clear();
         }
@@ -287,18 +298,40 @@ public class BatteryService : IBatteryService
 
     private void ProcessCompleteResponse(byte[] response)
     {
-        if (response.Length < 7) return;
+        BleLogger.LogData(LogSource, "Processing complete response", response);
+
+        if (response.Length < 7)
+        {
+            BleLogger.LogError(LogSource, $"Response too short: {response.Length} bytes (min 7)");
+            return;
+        }
 
         // Verify start byte
-        if (response[0] != 0xDD) return;
+        if (response[0] != 0xDD)
+        {
+            BleLogger.LogError(LogSource, $"Invalid start byte: 0x{response[0]:X2} (expected 0xDD)");
+            return;
+        }
 
         byte command = response[1];
         byte status = response[2];
         byte length = response[3];
 
+        BleLogger.Log(LogSource, $"Header: cmd=0x{command:X2}, status=0x{status:X2}, payloadLen={length}, totalLen={response.Length}");
+
         if (status != 0x00)
         {
+            BleLogger.LogError(LogSource, $"BMS returned error status: 0x{status:X2}");
             SetStatus("BMS returned error");
+            return;
+        }
+
+        // Verify response has enough data for the payload
+        // Header (4 bytes) + payload (length bytes) + checksum (2 bytes) + end byte (1 byte)
+        int expectedMinLength = 4 + length + 3;
+        if (response.Length < expectedMinLength)
+        {
+            BleLogger.LogError(LogSource, $"Response incomplete: have {response.Length} bytes, need {expectedMinLength} (header=4 + payload={length} + checksum=2 + end=1)");
             return;
         }
 
@@ -306,13 +339,20 @@ public class BatteryService : IBatteryService
         var payload = new byte[length];
         Array.Copy(response, 4, payload, 0, length);
 
+        BleLogger.LogData(LogSource, $"Extracted payload for cmd 0x{command:X2}", payload);
+
         switch (command)
         {
             case 0x03:
+                BleLogger.Log(LogSource, "Parsing as BasicInfo (0x03)");
                 ParseBasicInfo(payload);
                 break;
             case 0x04:
+                BleLogger.Log(LogSource, "Parsing as CellVoltages (0x04)");
                 ParseCellVoltages(payload);
+                break;
+            default:
+                BleLogger.Log(LogSource, $"Unknown command: 0x{command:X2}");
                 break;
         }
     }
